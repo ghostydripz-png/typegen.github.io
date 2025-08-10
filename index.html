@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TYPEGEN — Boost Your Typing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#000000;
+      --neon:#00ff66; /* green */
+      --muted:rgba(0,255,102,0.12);
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Arial;background:var(--bg);color:var(--neon)}
+
+    .container{max-width:1050px;margin:36px auto;padding:28px}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .mark{width:62px;height:62px;border-radius:12px;background:linear-gradient(135deg,rgba(0,255,102,0.06),rgba(0,255,102,0.12));display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-weight:700;color:var(--neon);box-shadow:0 6px 18px rgba(0,255,102,0.06);font-size:20px}
+    h1{font-family:Orbitron,monospace;margin:0;font-size:28px;letter-spacing:1px}
+    .tag{font-size:13px;color:var(--neon);opacity:0.8}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:20px;margin-top:18px;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+
+    .top-row{display:flex;gap:20px;align-items:center}
+    .stats{display:flex;gap:14px}
+    .stat{background:var(--glass);padding:14px;border-radius:12px;min-width:120px;text-align:center}
+    .stat .num{font-size:22px;font-weight:700}
+    .stat .lbl{font-size:12px;opacity:0.8}
+
+    .prompt{margin-top:18px;padding:18px;border-radius:10px;background:linear-gradient(90deg, rgba(0,255,102,0.02), rgba(0,255,102,0.01));font-size:18px;line-height:1.6;color:var(--neon);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+
+    textarea#input{width:100%;min-height:120px;margin-top:14px;padding:16px;border-radius:10px;background:transparent;border:1px dashed rgba(0,255,102,0.12);color:var(--neon);outline:none;font-size:16px;resize:none}
+
+    .controls{display:flex;gap:12px;margin-top:14px;align-items:center}
+    button{background:transparent;border:1px solid rgba(0,255,102,0.16);padding:10px 14px;border-radius:10px;color:var(--neon);cursor:pointer;font-weight:600}
+    button.primary{background:linear-gradient(90deg,rgba(0,255,102,0.06), rgba(0,255,102,0.04));box-shadow:0 8px 28px rgba(0,255,102,0.03)}
+
+    .progress-wrap{margin-top:12px;background:rgba(255,255,255,0.02);height:10px;border-radius:999px;overflow:hidden}
+    .progress{height:100%;width:0%;background:linear-gradient(90deg,#00ff66,#7affb3);transition:width 200ms linear}
+
+    footer{margin-top:34px;padding-top:20px;border-top:1px solid rgba(0,255,102,0.04);display:flex;justify-content:space-between;align-items:center;color:var(--neon);opacity:0.9}
+
+    .small{font-size:13px;opacity:0.85}
+
+    /* responsive */
+    @media (max-width:720px){.top-row{flex-direction:column;align-items:flex-start}.stats{width:100%;justify-content:space-between}.logo .mark{width:48px;height:48px;font-size:18px}}
+
+    /* neon caret for fun */
+    .blip{position:relative}
+    .blip::after{content:'';position:absolute;right:-6px;top:6px;width:2px;height:18px;background:var(--neon);box-shadow:0 0 8px var(--neon);opacity:0.9}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="mark">TG</div>
+        <div>
+          <h1>TYPEGEN</h1>
+          <div class="tag">Gen‑Z typing trainer • speed, accuracy & focus</div>
+        </div>
+      </div>
+      <div class="small">Made for quick sessions • neon mode</div>
+    </header>
+
+    <div class="card">
+      <div class="top-row">
+        <div style="flex:1">
+          <div class="stats">
+            <div class="stat">
+              <div class="num" id="wpm">0</div>
+              <div class="lbl">WPM</div>
+            </div>
+            <div class="stat">
+              <div class="num" id="acc">100%</div>
+              <div class="lbl">Accuracy</div>
+            </div>
+            <div class="stat">
+              <div class="num" id="time">60s</div>
+              <div class="lbl">Time</div>
+            </div>
+          </div>
+        </div>
+        <div style="min-width:220px;text-align:right">
+          <div class="small">Challenge: <strong id="modeLabel">60s</strong></div>
+          <div style="margin-top:10px">
+            <button id="mode30">30s</button>
+            <button id="mode60" class="primary">60s</button>
+            <button id="mode120">120s</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prompt" id="prompt">Loading prompt...</div>
+
+      <textarea id="input" placeholder="Start typing here..." disabled></textarea>
+
+      <div class="controls">
+        <button id="startBtn" class="primary">Start</button>
+        <button id="resetBtn">Reset</button>
+        <div style="margin-left:auto" class="small">Tip: Keep your eyes on the prompt, not the keyboard ✨</div>
+      </div>
+
+      <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+    </div>
+
+    <footer>
+      <div class="small">MADE IN @bharat.ind</div>
+      <div class="small">by ASHUTOSH DUBEY</div>
+    </footer>
+  </div>
+
+  <script>
+    // Sample prompts — short, punchy, GenZ vibes
+    const prompts = [
+      "fast fingers win the race — type like the comments section is watching.",
+      "breathe, focus, type — rhythm over speed. practice beats panic.",
+      "sky's the limit. level up your rhythm: tap keys like you're dropping hot takes.",
+      "code, chat, create — the keyboard is your paintbrush. make art with words.",
+      "gen z energy: short sentences, quick bursts. master them one session at a time.",
+      "ready? steady? type. accuracy > speed at first. polish later.",
+      "stack those wpm — consistency is the cheat code.",
+      "tiny wins: 5 minutes a day. watch your wpm climb week after week."
+    ];
+
+    const promptEl = document.getElementById('prompt');
+    const input = document.getElementById('input');
+    const wpmEl = document.getElementById('wpm');
+    const accEl = document.getElementById('acc');
+    const timeEl = document.getElementById('time');
+    const progress = document.getElementById('progress');
+    const modeLabel = document.getElementById('modeLabel');
+
+    let mode = 60; // seconds
+    let timer = null;
+    let startTime = null;
+    let totalTyped = 0;
+    let correctChars = 0;
+    let currentPrompt = '';
+
+    function pickPrompt(){
+      currentPrompt = prompts[Math.floor(Math.random()*prompts.length)];
+      promptEl.textContent = currentPrompt;
+    }
+
+    function setMode(s){ mode = s; modeLabel.textContent = s + 's'; timeEl.textContent = s + 's'; }
+
+    document.getElementById('mode30').addEventListener('click', ()=>{setMode(30); highlightMode(30)});
+    document.getElementById('mode60').addEventListener('click', ()=>{setMode(60); highlightMode(60)});
+    document.getElementById('mode120').addEventListener('click', ()=>{setMode(120); highlightMode(120)});
+    function highlightMode(s){ document.querySelectorAll('[id^="mode"]').forEach(b=>b.classList.remove('primary')); document.getElementById('mode'+s).classList.add('primary'); }
+
+    document.getElementById('startBtn').addEventListener('click', startTest);
+    document.getElementById('resetBtn').addEventListener('click', resetTest);
+
+    input.addEventListener('input', onType);
+
+    function startTest(){
+      pickPrompt();
+      input.value = '';
+      input.disabled = false;
+      input.focus();
+      startTime = Date.now();
+      totalTyped = 0; correctChars = 0;
+      clearInterval(timer);
+      const endAt = Date.now() + mode*1000;
+      timer = setInterval(()=>{
+        const remaining = Math.max(0, Math.ceil((endAt - Date.now())/1000));
+        timeEl.textContent = remaining + 's';
+        const elapsed = (Date.now()-startTime)/1000;
+        const minutes = Math.max(1, elapsed/60);
+        const wpm = Math.round((correctChars/5)/minutes);
+        wpmEl.textContent = wpm;
+        accEl.textContent = calcAcc() + '%';
+        const pct = Math.min(100, (elapsed/(mode))*100);
+        progress.style.width = pct + '%';
+        if(remaining <= 0){
+          finishTest();
+        }
+      },200);
+    }
+
+    function finishTest(){
+      clearInterval(timer);
+      input.disabled = true;
+      // final calc
+      const elapsed = Math.max(1,(Date.now()-startTime)/1000);
+      const minutes = elapsed/60;
+      const finalWpm = Math.round((correctChars/5)/minutes);
+      wpmEl.textContent = finalWpm;
+      accEl.textContent = calcAcc() + '%';
+      progress.style.width = '100%';
+      // small celebratory flash
+      promptEl.textContent = `Session ended — ${finalWpm} WPM • ${calcAcc()}% accuracy. Tap Reset to retry.`;
+    }
+
+    function resetTest(){
+      clearInterval(timer);
+      input.disabled = true;
+      input.value = '';
+      pickPrompt();
+      wpmEl.textContent = '0';
+      accEl.textContent = '100%';
+      timeEl.textContent = mode + 's';
+      progress.style.width = '0%';
+    }
+
+    function onType(e){
+      totalTyped = input.value.length;
+      // count correct chars by comparing to prompt prefix
+      let correct = 0;
+      for(let i=0;i<input.value.length;i++){
+        if(input.value[i] === currentPrompt[i]) correct++;
+      }
+      correctChars = correct;
+      accEl.textContent = calcAcc() + '%';
+      // update WPM live
+      const elapsed = Math.max(1, (Date.now()-startTime)/1000);
+      const minutes = elapsed/60;
+      const wpm = Math.round((correctChars/5)/minutes);
+      wpmEl.textContent = isNaN(wpm) ? 0 : wpm;
+    }
+
+    function calcAcc(){
+      if(totalTyped === 0) return 100;
+      return Math.max(0, Math.round((correctChars/totalTyped)*100));
+    }
+
+    // init
+    pickPrompt();
+    highlightMode(60);
+  </script>
+</body>
+</html>
